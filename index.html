@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebHID Macro Pad Configurator</title>
+    <meta name="description" content="Configure custom USB macro keyboards and keypads using WebHID API directly from the browser.">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header & Connection Status -->
+        <header>
+            <h1>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke: var(--accent-cyan); filter: drop-shadow(0 0 4px var(--glow-cyan));">
+                    <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                    <line x1="6" y1="8" x2="6" y2="8"></line>
+                    <line x1="10" y1="8" x2="10" y2="8"></line>
+                    <line x1="14" y1="8" x2="14" y2="8"></line>
+                    <line x1="18" y1="8" x2="18" y2="8"></line>
+                    <line x1="6" y1="12" x2="6" y2="12"></line>
+                    <line x1="10" y1="12" x2="10" y2="12"></line>
+                    <line x1="14" y1="12" x2="14" y2="12"></line>
+                    <line x1="18" y1="12" x2="18" y2="12"></line>
+                    <line x1="7" y1="16" x2="17" y2="16"></line>
+                </svg>
+                WebHID Macro Pad Configurator
+                <span class="app-version" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.5rem; vertical-align: middle; background: rgba(255,255,255,0.05); padding: 0.1rem 0.4rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">v0.43</span>
+            </h1>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button id="btn-companion" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; border-color: var(--accent-purple); color: var(--accent-purple);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"></path><path d="M12 2a10 10 0 0 1 10 10h-10V2z"></path><path d="M12 12L22 12"></path><path d="M12 12V22"></path></svg>
+                    <span id="btn-companion-text">Работа с компаньоном</span>
+                </button>
+                <button id="btn-lang" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <span>EN</span>
+                </button>
+                <div class="status-badge" id="device-status-badge">
+                    <span class="status-indicator disconnected" id="status-indicator"></span>
+                    <span id="status-text">Disconnected</span>
+                </div>
+                <button id="btn-connect" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    Connect Device
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Layout Split -->
+        <main class="main-layout">
+            <!-- Left Side: Interactive Keypad Visualizer -->
+            <section class="card visualizer-card">
+                <div class="layout-toolbar">
+                    <div class="form-group" style="flex: 1; max-width: 200px;">
+                        <label for="select-layout">Keypad Layout</label>
+                        <select id="select-layout">
+                            <option value="3x1">3 Keys + 1 Knob</option>
+                            <option value="3x2">3 Keys + 2 Knobs (Concentric/Double)</option>
+                            <option value="6x1" selected>6 Keys + 1 Knob</option>
+                            <option value="6x2">6 Keys + 2 Knobs</option>
+                            <option value="12x2">12 Keys + 2 Knobs</option>
+                            <option value="media_dial">Concentric Media Dial</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="flex: 1; max-width: 200px;">
+                        <label for="select-model">Device Model (Protocol)</label>
+                        <select id="select-model">
+                            <option value="Ch57x_1">Ch57x_1 (K884x)</option>
+                            <option value="Ch57x_2" selected>Ch57x_2 (K8890)</option>
+                            <option value="Ch57x_3">Ch57x_3 (K8850)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="flex: 1; max-width: 200px;">
+                        <label for="select-layer">Layer</label>
+                        <select id="select-layer">
+                            <option value="0">Layer 1 (Default)</option>
+                            <option value="1">Layer 2</option>
+                            <option value="2">Layer 3</option>
+                            <option value="3">Layer 4</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="keypad-grid-container">
+                    <div class="keypad-chassis" id="keypad-chassis">
+                        <!-- Keypad elements dynamically rendered by app.js -->
+                    </div>
+                </div>
+
+                <div class="layout-toolbar" style="margin-top: auto; justify-content: flex-end; gap: 0.75rem;">
+                    <button id="btn-clear" class="btn btn-secondary" disabled>Clear</button>
+                    <button id="btn-clear-all" class="btn btn-secondary">Clear All</button>
+                    <button id="btn-read" class="btn btn-secondary" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Read from Device
+                    </button>
+                    <button id="btn-upload" class="btn btn-success" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Upload to Device
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Side: Sidebar Key Configuration Panel -->
+            <aside class="card">
+                <div class="card-title">
+                    <span>Key Configuration</span>
+                    <span id="active-key-title" style="color: var(--accent-cyan); font-size: 0.95rem;">Select a Key</span>
+                </div>
+
+                <div class="config-options" id="config-panel" style="pointer-events: none; opacity: 0.5;">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="keyboard">Keyboard</div>
+                        <div class="tab" data-tab="media">Media</div>
+                        <div class="tab" data-tab="mouse">Mouse</div>
+                    </div>
+
+                    <!-- Keyboard Macro Mode -->
+                    <div class="tab-content active" id="tab-keyboard">
+                        <div class="form-group">
+                            <label>Keypress / Shortcut</label>
+                            <div class="key-capture-area" id="key-capture-box">
+                                <div class="key-capture-shortcut" id="key-capture-value">Press Keys</div>
+                                <div class="key-capture-prompt" id="key-capture-status">Click here and type a shortcut</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-divider"><span>OR CONFIGURE MANUALLY</span></div>
+                        
+                        <div class="form-group">
+                            <label>Modifiers</label>
+                            <div class="modifiers-checkbox-grid">
+                                <label class="checkbox-container"><input type="checkbox" id="chk-ctrl"><span>Ctrl</span></label>
+                                <label class="checkbox-container"><input type="checkbox" id="chk-shift"><span>Shift</span></label>
+                                <label class="checkbox-container"><input type="checkbox" id="chk-alt"><span>Alt</span></label>
+                                <label class="checkbox-container"><input type="checkbox" id="chk-win"><span>Win</span></label>
+                                <label class="checkbox-container"><input type="checkbox" id="chk-rctrl"><span>R-Ctrl</span></label>
+                                <label class="checkbox-container"><input type="checkbox" id="chk-rshift"><span>R-Shift</span></label>
+                                <label class="checkbox-container"><input type="checkbox" id="chk-ralt"><span>R-Alt</span></label>
+                                <label class="checkbox-container"><input type="checkbox" id="chk-rwin"><span>R-Win</span></label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="select-keyboard-key">Key / Symbol</label>
+                            <select id="select-keyboard-key">
+                                <option value="0">None</option>
+                                <!-- Populated dynamically by app.js -->
+                            </select>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button id="btn-clear-shortcut" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Media Key Mode -->
+                    <div class="tab-content" id="tab-media">
+                        <div class="form-group">
+                            <label for="select-media">Select Action</label>
+                            <select id="select-media">
+                                <!-- Populated dynamically by app.js -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Mouse Action Mode -->
+                    <div class="tab-content" id="tab-mouse">
+                        <div class="form-group">
+                            <label for="select-mouse-action">Mouse Action / Gesture</label>
+                            <select id="select-mouse-action">
+                                <option value="none">None</option>
+                                <option value="left">Mouse LeftKey</option>
+                                <option value="right">Mouse Right</option>
+                                <option value="middle">Mouse Middle</option>
+                                <option value="wheel_up">Mouse Wheel+</option>
+                                <option value="wheel_down">Mouse Wheel-</option>
+                                <option value="ctrl_wheel_up">Ctrl+Mouse Up</option>
+                                <option value="ctrl_wheel_down">Ctrl+Mouse Down</option>
+                                <option value="shift_wheel_up">Shift+Mouse Up</option>
+                                <option value="shift_wheel_down">Shift+Mouse Down</option>
+                                <option value="alt_wheel_up">Alt+Mouse Up</option>
+                                <option value="alt_wheel_down">Alt+Mouse Down</option>
+                                <option value="swipe_left">Left Swipe</option>
+                                <option value="swipe_right">Right Swipe</option>
+                                <option value="swipe_up">Up Swipe</option>
+                                <option value="swipe_down">Down Swipe</option>
+                                <option value="like">Like (Double Click)</option>
+                                <option value="custom">Custom Action...</option>
+                            </select>
+                        </div>
+
+                        <!-- Manual Coordinates, Click and Wheel settings - visible only when Custom Action is chosen -->
+                        <div id="mouse-custom-settings" style="display: none; flex-direction: column; gap: 1rem;">
+                            <div class="form-group">
+                                <label for="select-mouse-btn">Mouse Click</label>
+                                <select id="select-mouse-btn">
+                                    <option value="0">None</option>
+                                    <option value="1">Left Click</option>
+                                    <option value="2">Right Click</option>
+                                    <option value="4">Middle Click</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="select-mouse-wheel">Mouse Wheel Scroll</label>
+                                <select id="select-mouse-wheel">
+                                    <option value="0">None</option>
+                                    <option value="3">Scroll Up</option>
+                                    <option value="-3" style="color: var(--accent-purple);">Scroll Down</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Wheel / Click Modifiers</label>
+                                <div class="modifiers-checkbox-grid" style="grid-template-columns: repeat(3, 1fr);">
+                                    <label class="checkbox-container"><input type="checkbox" id="chk-mouse-ctrl"><span>Ctrl</span></label>
+                                    <label class="checkbox-container"><input type="checkbox" id="chk-mouse-shift"><span>Shift</span></label>
+                                    <label class="checkbox-container"><input type="checkbox" id="chk-mouse-alt"><span>Alt</span></label>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                <div class="form-group">
+                                    <label for="input-mouse-dx">Move X (px)</label>
+                                    <input type="number" id="input-mouse-dx" value="0" min="-127" max="127">
+                                </div>
+                                <div class="form-group">
+                                    <label for="input-mouse-dy">Move Y (px)</label>
+                                    <input type="number" id="input-mouse-dy" value="0" min="-127" max="127">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Profiles Panel -->
+            <section class="card profiles-card" style="grid-column: 1 / -1;">
+                <div class="profiles-header">
+                    <div style="display:flex; flex-direction:column; gap:0.3rem;">
+                        <h3 class="profiles-title" id="profiles-panel-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--accent-cyan);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            Application Profiles
+                        </h3>
+                        <span id="daemon-status-badge" class="daemon-badge daemon-off">&#x1F534; Keypad Companion not running</span>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                        <button class="btn btn-secondary" id="btn-sync-daemon" onclick="syncProfilesToDaemon()" style="font-size:0.8rem; padding:0.4rem 0.9rem; border-color:var(--accent-cyan); color:var(--accent-cyan);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            <span id="btn-sync-daemon-text">Sync to Companion</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btn-new-profile" onclick="createNewProfile()" style="font-size:0.8rem; padding:0.4rem 0.9rem;">
+                            + New Profile
+                        </button>
+                    </div>
+                </div>
+                <div id="profiles-cards" class="profiles-grid">
+                    <!-- Rendered by renderProfilesPanel() in app.js -->
+                </div>
+                <div class="profiles-hint" id="profiles-hint-text">
+                    &#x1F4A1; Configure key bindings, save to profile, sync to companion.
+                </div>
+            </section>
+
+            <!-- RGB Backlight Card -->
+            <section class="card" style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; justify-content: center;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--accent-purple); text-shadow: 0 0 5px var(--glow-purple);">LED Backlight Mode</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Configure the onboard RGB animation effects and colors.</p>
+                </div>
+                <div class="rgb-controls">
+                    <div class="form-group">
+                        <label for="select-led-mode">Animation Mode</label>
+                        <select id="select-led-mode" disabled>
+                            <option value="0">Off (Disable LEDs)</option>
+                            <option value="1">Static Backlight</option>
+                            <option value="2">Press Shock Mode</option>
+                            <option value="3">Press Shock Alternate</option>
+                            <option value="4">Press Fade Light</option>
+                            <option value="5">White Backlight</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>LED Color</label>
+                        <div class="color-dot-container" id="led-colors-container">
+                            <span class="color-dot" data-color="1" style="background-color: #ff3366;" title="Red"></span>
+                            <span class="color-dot" data-color="2" style="background-color: #ff7700;" title="Orange"></span>
+                            <span class="color-dot" data-color="3" style="background-color: #ffdd00;" title="Yellow"></span>
+                            <span class="color-dot" data-color="4" style="background-color: #00ff88;" title="Green"></span>
+                            <span class="color-dot" data-color="5" style="background-color: #00f0ff;" title="Cyan"></span>
+                            <span class="color-dot" data-color="6" style="background-color: #0066ff;" title="Blue"></span>
+                            <span class="color-dot" data-color="7" style="background-color: #bd00ff;" title="Purple"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration Import/Export & Logger -->
+            <section class="card console-card">
+                <div class="card-title">
+                    <span>Hardware Event Log & Settings</span>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button id="btn-copy-logs" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--accent-purple);">Copy Logs</button>
+                        <button id="btn-export" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Export Profile</button>
+                        <button id="btn-import" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Import Profile</button>
+                    </div>
+                </div>
+                <div class="console-output" id="console-log">
+                    <div class="console-line">
+                        <span class="console-time">[00:00:00]</span>
+                        <span class="console-info">РЎРёСЃС‚РµРјР° РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅР°. РќР°Р¶РјРёС‚Рµ "РџРѕРґРєР»СЋС‡РёС‚СЊ", С‡С‚РѕР±С‹ РЅР°С‡Р°С‚СЊ РЅР°СЃС‚СЂРѕР№РєСѓ.</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Hidden file input for config import -->
+    <input type="file" id="import-file-input" style="display: none;" accept=".json">
+
+    <!-- Modal Dialog for Profile Meta Editing -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="profile-modal-title">Редактировать профиль</h3>
+                <button class="modal-close" id="profile-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="profile-modal-name" id="lbl-modal-name">Название профиля</label>
+                    <input type="text" id="profile-modal-name" class="form-control" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.6rem 0.8rem; color: var(--text-color); font-family: var(--font-sans); width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label for="profile-modal-icon" id="lbl-modal-icon">Иконка (эмодзи)</label>
+                    <input type="text" id="profile-modal-icon" class="form-control" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.6rem 0.8rem; color: var(--text-color); font-family: var(--font-sans); width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label for="profile-modal-rules" id="lbl-modal-rules">Правила совпадения (exe или название, через запятую)</label>
+                    <textarea id="profile-modal-rules" rows="3" class="form-control" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.6rem 0.8rem; color: var(--text-color); font-family: var(--font-sans); width: 100%; resize: vertical;"></textarea>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                    <input type="checkbox" id="profile-modal-disabled" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-red);">
+                    <label for="profile-modal-disabled" id="lbl-modal-disabled" style="cursor: pointer; user-select: none;">Отключить этот профиль</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="profile-modal-cancel">Отмена</button>
+                <button class="btn btn-success" id="profile-modal-save">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Dialog for Companion Explanation -->
+    <div class="modal-overlay" id="companion-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="companion-modal-title">Работа с компаньоном Keypad Companion</h3>
+                <button class="modal-close" id="companion-modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="font-size: 0.9rem; line-height: 1.6; gap: 1.2rem;">
+                <p id="comp-desc-1">
+                    <b>Keypad Companion</b> — это фоновое приложение Windows, которое позволяет вашему макропаду автоматически менять раскладки (профили) при переключении между различными приложениями.
+                </p>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <h4 style="color: var(--accent-cyan); font-weight: 600;" id="comp-hdr-1">Как использовать:</h4>
+                    <ol style="margin-left: 1.2rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                        <li id="comp-step-1">Настройте привязки клавиш и крутилок для нужного приложения.</li>
+                        <li id="comp-step-2">Нажмите кнопку 💾 у соответствующего профиля в списке, чтобы применить текущую конфигурацию.</li>
+                        <li id="comp-step-3">Настройте правила (например, введите имя процесса <code>Spotify.exe</code> для профиля музыки).</li>
+                        <li id="comp-step-4">Нажмите кнопку <b>«Сохранить в компаньон»</b> для отправки данных.</li>
+                        <li id="comp-step-5">Запустите приложение <code>Keypad_Companion.exe</code> на вашем компьютере.</li>
+                    </ol>
+                </div>
+                <div style="background: rgba(189,0,255,0.05); border: 1px solid rgba(189,0,255,0.15); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <h4 style="color: var(--accent-purple); font-weight: 600;" id="comp-hdr-2">Преимущества компаньона:</h4>
+                    <ul style="margin-left: 1.2rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                        <li id="comp-feat-1">Работает полностью автономно в фоновом режиме.</li>
+                        <li id="comp-feat-2">Не требует держать открытой вкладку браузера или иметь доступ к интернету.</li>
+                        <li id="comp-feat-3">Почти не расходует системные ресурсы компьютера (написан на Python/C, не грузит CPU).</li>
+                        <li id="comp-feat-4">Сам опрашивает активные окна Windows 1 раз в секунду и мгновенно перепрошивает макропад.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="companion-modal-ok" style="padding: 0.5rem 1.5rem;">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading scripts -->
+    <script src="keycodes.js" charset="utf-8"></script>
+    <script src="app.js" charset="utf-8"></script>
+</body>
+</html>
+

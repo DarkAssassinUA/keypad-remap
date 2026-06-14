@@ -1,0 +1,18 @@
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# PyInstaller build directories and configs
+build/
+dist/
+*.spec
+
+# User local configuration database
+profiles_daemon.json
+
+# OS specific files
+Thumbs.db
+desktop.ini
+.DS_Store
