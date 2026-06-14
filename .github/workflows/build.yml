@@ -1,8 +1,6 @@
 name: Build Keypad Companion
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
