@@ -3,9 +3,10 @@ name: Build Keypad Companion
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -20,6 +21,14 @@ jobs:
       with:
         python-version: '3.12'
 
+    - name: Get Version from code
+      id: get_version
+      shell: bash
+      run: |
+        VERSION=$(python -c "import re; content=open('profile_daemon.py', encoding='utf-8').read(); m=re.search(r'VERSION\s*=\s*[\"\']([^\"\']+)[\"\']', content); print(m.group(1))")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Found version: $VERSION"
+
     - name: Install PyInstaller
       run: |
         python -m pip install --upgrade pip
@@ -29,8 +38,13 @@ jobs:
       run: |
         pyinstaller --clean --onefile --add-binary "hidapi64.dll;." --name Keypad_Companion profile_daemon.py
 
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
+    - name: Create Git Tag and Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: Keypad_Companion
-        path: dist/Keypad_Companion.exe
+        tag_name: v${{ steps.get_version.outputs.version }}
+        name: Release v${{ steps.get_version.outputs.version }}
+        draft: false
+        prerelease: false
+        files: dist/Keypad_Companion.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

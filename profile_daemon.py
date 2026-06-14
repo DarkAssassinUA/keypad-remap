@@ -39,6 +39,7 @@ def get_appdata_path():
     return target_dir
 
 # Config
+VERSION       = "1.1"
 HTTP_PORT     = 8001
 PROFILES_FILE = os.path.join(get_appdata_path(), "profiles_daemon.json")
 POLL_INTERVAL = 1.0    # seconds between window checks
@@ -420,7 +421,7 @@ class DaemonHandler(BaseHTTPRequestHandler):
                     "active_profile_id":state["active_profile_id"],
                     "current_window":   state["current_window"],
                     "profiles_count":   len(state["profiles"]),
-                    "version":          "1.1",
+                    "version":          VERSION,
                 })
         elif path == "/active-window":
             with state["lock"]:
