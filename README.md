@@ -9,7 +9,7 @@
 > [!WARNING]
 > This configurator is designed specifically for the **Concentric Double Dial** macro pad (featuring two concentric rotating rings/wheels, 55mm base diameter, 40mm height) and similar keypads using the Ch57x protocol. It may not work with other standard macro pads.
 > 
-> <img src="device.png" width="250" alt="Concentric Double Dial Keypad">
+> <img src="docs/device.png" width="250" alt="Concentric Double Dial Keypad">
 
 A modern, glassmorphic web configurator and companion application for USB macro keypads. It allows you to remap keys, configure knobs, set RGB lighting, and automatically switch layout profiles based on the active application.
 
@@ -37,7 +37,7 @@ A modern, glassmorphic web configurator and companion application for USB macro 
 > [!WARNING]
 > Этот конфигуратор разработан специально для макропадов типа **Concentric Double Dial** (с двумя концентрическими крутящимися кольцами/колесами, диаметр основания 55 мм, высота 40 мм) и аналогичных клавиатур на базе протокола Ch57x. Совместимость с другими стандартными макропадами не гарантируется.
 > 
-> <img src="device.png" width="250" alt="Concentric Double Dial Keypad">
+> <img src="docs/device.png" width="250" alt="Concentric Double Dial Keypad">
 
 Современный веб-конфигуратор с адаптивным интерфейсом и компаньон для настройки программируемых USB-макропадов (клавиатур). Позволяет переназначать клавиши, настраивать крутилки (энкодеры), управлять RGB-подсветкой и автоматически переключать профили раскладок в зависимости от активного приложения.
 
